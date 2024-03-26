@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windy Travel</title>
+</head>
+<body>
+    <style>
+        * {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --color-bg: rgb(0 0 0 / 3%);
+  --color-blue: #2196F3;
+  --color-yellow: #FDD835;
+  --color-red: #E53935;
+  --color-green: #388E3C;
+
+  --card-width: 320px;
+  --card-aspect-ratio: 16 / 9;
+  
+  --arrow-size: 2.5rem;
+  --arrow-icon-size: 1.75rem;
+  --arrow-icon-color: rgb(0 0 0 / 50%);
+  --arrow-icon-color-hover: rgb(0 0 0 / 75%);
+  --arrow-bg-color: transparent;
+  --arrow-bg-color-hover: rgb(0 0 0 / 10%);
+  
+  --bullet-size: .5rem;
+  
+  --transition-speed: .5s;
+  --transition-bezier: cubic-bezier(0.55, -0.85, 0.2, 1.85);
+  
+  --icon-arrow: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTIwLDExVjEzSDhMMTMuNSwxOC41TDEyLjA4LDE5LjkyTDQuMTYsMTJMMTIuMDgsNC4wOEwxMy41LDUuNUw4LDExSDIwWiIgLz48L3N2Zz4=");
+}
+
+.container {
+  width: 100%;
+  height: 100vh;
+  background-color: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slider {
+  position: relative;
+  width: calc(var(--card-width) + calc(var(--arrow-size) * 2) + 2rem);
+}
+
+.slider__cards {
+  width: var(--card-width);
+  aspect-ratio: var(--card-aspect-ratio);
+  position: relative;
+  margin-inline: auto;
+}
+
+.slider__card {
+  width: var(--card-width);
+  aspect-ratio: var(--card-aspect-ratio);
+  border-radius: .5rem;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  transition: opacity var(--transition-speed) ease-in-out;
+}
+
+.slider__card[active] {
+  opacity: 1;
+}
+
+.slider__card--blue {
+  background-color: var(--color-blue);
+}
+
+.slider__card--green {
+  background-color: var(--color-green);
+}
+
+.slider__card--yellow {
+  background-color: var(--color-yellow);
+}
+
+.slider__card--red {
+  background-color: var(--color-red);
+}
+
+.slider__arrows {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.slider__arrow {
+  height: var(--arrow-size);
+  width: var(--arrow-size);
+  background-color: var(--arrow-bg-color);
+  border-radius: 50%;
+  border: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.slider__arrow[disabled] {
+  opacity: .25;
+  pointer-events: none;
+}
+
+.slider__arrow:is(:hover, :focus-visible) {
+  background-color: var(--arrow-bg-color-hover);
+}
+
+.slider__arrow::after {
+  content: '';
+  display: block;
+  height: var(--arrow-icon-size);
+  width: var(--arrow-icon-size);
+  mask-position: center;
+  -webkit-mask-position: center;
+  mask-size: contain;
+  -webkit-mask-size: contain;
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-image: var(--icon-arrow);
+  -webkit-mask-image: var(--icon-arrow);
+  background-color: var(--arrow-icon-color);
+}
+
+.slider__arrow:is(:hover, :focus-visible)::after {
+  background-color: var(--arrow-icon-color-hover);
+}
+
+.slider__arrow--next::after {
+  transform: rotate(180deg);
+}
+
+.slider__bullets {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  position: absolute;
+  left: 0;
+  bottom: 1rem;
+  pointer-events: none;
+}
+
+.slider__bullet {
+  display: block;
+  height: var(--bullet-size);
+  width: var(--bullet-size);
+  background-color: white;
+  border: none;
+  border-radius: 2rem;
+  transition: width var(--transition-speed) var(--transition-bezier);
+}
+
+.slider__bullet[active] {
+  width: calc(var(--bullet-size) * 3);
+}
+    </style>
+
+    <header class="bg-white">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+          <div class="flex h-16 items-center justify-between">
+            <div class="md:flex md:items-center md:gap-12">
+              <a class="block text-teal-600" href="#">
+                <span class="sr-only">Home</span>
+                <svg class="h-8" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M0.41 10.3847C1.14777 7.4194 2.85643 4.7861 5.2639 2.90424C7.6714 1.02234 10.6393 0 13.695 0C16.7507 0 19.7186 1.02234 22.1261 2.90424C24.5336 4.7861 26.2422 7.4194 26.98 10.3847H25.78C23.7557 10.3549 21.7729 10.9599 20.11 12.1147C20.014 12.1842 19.9138 12.2477 19.81 12.3047H19.67C19.5662 12.2477 19.466 12.1842 19.37 12.1147C17.6924 10.9866 15.7166 10.3841 13.695 10.3841C11.6734 10.3841 9.6976 10.9866 8.02 12.1147C7.924 12.1842 7.8238 12.2477 7.72 12.3047H7.58C7.4762 12.2477 7.376 12.1842 7.28 12.1147C5.6171 10.9599 3.6343 10.3549 1.61 10.3847H0.41ZM23.62 16.6547C24.236 16.175 24.9995 15.924 25.78 15.9447H27.39V12.7347H25.78C24.4052 12.7181 23.0619 13.146 21.95 13.9547C21.3243 14.416 20.5674 14.6649 19.79 14.6649C19.0126 14.6649 18.2557 14.416 17.63 13.9547C16.4899 13.1611 15.1341 12.7356 13.745 12.7356C12.3559 12.7356 11.0001 13.1611 9.86 13.9547C9.2343 14.416 8.4774 14.6649 7.7 14.6649C6.9226 14.6649 6.1657 14.416 5.54 13.9547C4.4144 13.1356 3.0518 12.7072 1.66 12.7347H0V15.9447H1.61C2.39051 15.924 3.154 16.175 3.77 16.6547C4.908 17.4489 6.2623 17.8747 7.65 17.8747C9.0377 17.8747 10.392 17.4489 11.53 16.6547C12.1468 16.1765 12.9097 15.9257 13.69 15.9447C14.4708 15.9223 15.2348 16.1735 15.85 16.6547C16.9901 17.4484 18.3459 17.8738 19.735 17.8738C21.1241 17.8738 22.4799 17.4484 23.62 16.6547ZM23.62 22.3947C24.236 21.915 24.9995 21.664 25.78 21.6847H27.39V18.4747H25.78C24.4052 18.4581 23.0619 18.886 21.95 19.6947C21.3243 20.156 20.5674 20.4049 19.79 20.4049C19.0126 20.4049 18.2557 20.156 17.63 19.6947C16.4899 18.9011 15.1341 18.4757 13.745 18.4757C12.3559 18.4757 11.0001 18.9011 9.86 19.6947C9.2343 20.156 8.4774 20.4049 7.7 20.4049C6.9226 20.4049 6.1657 20.156 5.54 19.6947C4.4144 18.8757 3.0518 18.4472 1.66 18.4747H0V21.6847H1.61C2.39051 21.664 3.154 21.915 3.77 22.3947C4.908 23.1889 6.2623 23.6147 7.65 23.6147C9.0377 23.6147 10.392 23.1889 11.53 22.3947C12.1468 21.9165 12.9097 21.6657 13.69 21.6847C14.4708 21.6623 15.2348 21.9135 15.85 22.3947C16.9901 23.1884 18.3459 23.6138 19.735 23.6138C21.1241 23.6138 22.4799 23.1884 23.62 22.3947Z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </a>
+            </div>
+      
+            <div class="hidden md:block">
+              <nav aria-label="Global">
+                <ul class="flex items-center gap-6 text-sm">
+                  <li>
+                    <a class="text-gray-500 transition hover:text-gray-500/75" href="#"> Beranda </a>
+                  </li>
+      
+                  <li>
+                    <a class="text-gray-500 transition hover:text-gray-500/75" href="#"> Paket </a>
+                  </li>
+      
+                  <li>
+                    <a class="text-gray-500 transition hover:text-gray-500/75" href="#"> Promo </a>
+                  </li>
+      
+                  <li>
+                    <a class="text-gray-500 transition hover:text-gray-500/75" href="#"> Tentang </a>
+                  </li>
+      
+                  <li>
+                    <a class="text-gray-500 transition hover:text-gray-500/75" href="#"> Kontak </a>
+                  </li>
+      
+                  <li>
+                    <a class="text-gray-500 transition hover:text-gray-500/75" href="#"> Blog </a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+      
+            <div class="flex items-center gap-4">
+              <div class="sm:flex sm:gap-4">
+                <a
+                  class="rounded-md bg-teal-600 px-5 py-2.5 text-sm font-medium text-white shadow"
+                  href="#"
+                >
+                  Login
+                </a>
+      
+                <div class="hidden sm:flex">
+                  <a
+                    class="rounded-md bg-gray-100 px-5 py-2.5 text-sm font-medium text-teal-600"
+                    href="#"
+                  >
+                    Register
+                  </a>
+                </div>
+              </div>
+      
+              <div class="block md:hidden">
+                <button class="rounded bg-gray-100 p-2 text-gray-600 transition hover:text-gray-600/75">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+      <!--
+        Heads up! 👋
+      
+        Plugins:
+          - @tailwindcss/forms
+      -->
+    <main>
+        
+  
+  <section class="bg-white">
+    <div class="lg:grid lg:min-h-screen lg:grid-cols-12">
+      <section class="relative flex h-32 items-end bg-gray-900 lg:col-span-5 lg:h-full xl:col-span-6">
+        <div class="container">
+            <div class="slider">
+              <div class="slider__cards">
+                <div class="slider_card slider_card--blue"></div>
+                <div class="slider_card slider_card--yellow"></div>
+                <div class="slider_card slider_card--red"></div>
+                <div class="slider_card slider_card--green"></div>
+              </div>
+              <div class="slider__arrows">
+                <button class="slider_arrow slider_arrow--prev" title="Previous slide"></button>
+                <button class="slider_arrow slider_arrow--next" title="Next slide"></button>
+              </div>
+              <div class="slider__bullets"></div>
+            </div>
+          </div>
+  
+      </section>
+  
+      <main
+        class="flex items-center justify-center px-8 py-8 sm:px-12 lg:col-span-7 lg:px-16 lg:py-12 xl:col-span-6"
+      >
+        <div class="max-w-xl lg:max-w-3xl">
+          <div class="relative -mt-16 block lg:hidden">
+            <a
+              class="inline-flex size-16 items-center justify-center rounded-full bg-white text-blue-600 sm:size-20"
+              href="#"
+            >
+              <span class="sr-only">Home</span>
+              <svg
+                class="h-8 sm:h-10"
+                viewBox="0 0 28 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M0.41 10.3847C1.14777 7.4194 2.85643 4.7861 5.2639 2.90424C7.6714 1.02234 10.6393 0 13.695 0C16.7507 0 19.7186 1.02234 22.1261 2.90424C24.5336 4.7861 26.2422 7.4194 26.98 10.3847H25.78C23.7557 10.3549 21.7729 10.9599 20.11 12.1147C20.014 12.1842 19.9138 12.2477 19.81 12.3047H19.67C19.5662 12.2477 19.466 12.1842 19.37 12.1147C17.6924 10.9866 15.7166 10.3841 13.695 10.3841C11.6734 10.3841 9.6976 10.9866 8.02 12.1147C7.924 12.1842 7.8238 12.2477 7.72 12.3047H7.58C7.4762 12.2477 7.376 12.1842 7.28 12.1147C5.6171 10.9599 3.6343 10.3549 1.61 10.3847H0.41ZM23.62 16.6547C24.236 16.175 24.9995 15.924 25.78 15.9447H27.39V12.7347H25.78C24.4052 12.7181 23.0619 13.146 21.95 13.9547C21.3243 14.416 20.5674 14.6649 19.79 14.6649C19.0126 14.6649 18.2557 14.416 17.63 13.9547C16.4899 13.1611 15.1341 12.7356 13.745 12.7356C12.3559 12.7356 11.0001 13.1611 9.86 13.9547C9.2343 14.416 8.4774 14.6649 7.7 14.6649C6.9226 14.6649 6.1657 14.416 5.54 13.9547C4.4144 13.1356 3.0518 12.7072 1.66 12.7347H0V15.9447H1.61C2.39051 15.924 3.154 16.175 3.77 16.6547C4.908 17.4489 6.2623 17.8747 7.65 17.8747C9.0377 17.8747 10.392 17.4489 11.53 16.6547C12.1468 16.1765 12.9097 15.9257 13.69 15.9447C14.4708 15.9223 15.2348 16.1735 15.85 16.6547C16.9901 17.4484 18.3459 17.8738 19.735 17.8738C21.1241 17.8738 22.4799 17.4484 23.62 16.6547ZM23.62 22.3947C24.236 21.915 24.9995 21.664 25.78 21.6847H27.39V18.4747H25.78C24.4052 18.4581 23.0619 18.886 21.95 19.6947C21.3243 20.156 20.5674 20.4049 19.79 20.4049C19.0126 20.4049 18.2557 20.156 17.63 19.6947C16.4899 18.9011 15.1341 18.4757 13.745 18.4757C12.3559 18.4757 11.0001 18.9011 9.86 19.6947C9.2343 20.156 8.4774 20.4049 7.7 20.4049C6.9226 20.4049 6.1657 20.156 5.54 19.6947C4.4144 18.8757 3.0518 18.4472 1.66 18.4747H0V21.6847H1.61C2.39051 21.664 3.154 21.915 3.77 22.3947C4.908 23.1889 6.2623 23.6147 7.65 23.6147C9.0377 23.6147 10.392 23.1889 11.53 22.3947C12.1468 21.9165 12.9097 21.6657 13.69 21.6847C14.4708 21.6623 15.2348 21.9135 15.85 22.3947C16.9901 23.1884 18.3459 23.6138 19.735 23.6138C21.1241 23.6138 22.4799 23.1884 23.62 22.3947Z"
+                  fill="currentColor"
+                />
+              </svg>
+            </a>
+  
+            <h1 class="mt-2 text-2xl font-bold text-gray-900 sm:text-3xl md:text-4xl">
+              Welcome to Squid 🦑
+            </h1>
+  
+            <p class="mt-4 leading-relaxed text-gray-500">
+              Lorem, ipsum dolor sit amet consectetur adipisicing elit. Eligendi nam dolorum aliquam,
+              quibusdam aperiam voluptatum.
+            </p>
+          </div>
+  
+          <form action="#" class="mt-8 grid grid-cols-6 gap-6">
+            <div class="col-span-6 sm:col-span-3">
+              <label for="name" class="block text-sm font-medium text-gray-700">
+                Name
+              </label>
+  
+              <input
+                type="text"
+                id="name"
+                name="name"
+                class="mt-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
+              />
+            </div> 
+
+  
+            <div class="col-span-6">
+              <label for="Email" class="block text-sm font-medium text-gray-700"> Email </label>
+  
+              <input
+                type="email"
+                id="email"
+                name="email"
+                class="mt-1 w-full rounded-md border-gray-200 bg-white text-sm text-gray-700 shadow-sm"
+              />
+            </div> 
+
+            <div>
+                <label for="HeadlineAct" class="block text-sm font-medium text-gray-900"> Tertarik untuk </label>
+              
+                <select
+                  name="HeadlineAct"
+                  id="HeadlineAct"
+                  class="mt-1.5 w-full rounded-lg border-gray-300 text-gray-700 sm:text-sm"
+                >
+                  <option value="">Please select</option>
+                  <option value="Belitung">Belitung</option>
+                  <option value="Raja Ampat">Raja Ampat</option>
+                  <option value="Lombok">Lombok</option>
+                  <option value="Karimun Jawa">Karimun Jawa</option>
+                  <option value="Labuan Bajo">Labuan Bajo</option>
+                  <option value="Ujung Kulon">Ujung Kulon</option>
+                  <option value="Bromo">Bromo</option>
+                </select>
+              </div>
+  
+            <div class="col-span-6">
+              <label for="MarketingAccept" class="flex gap-4">
+                <input
+                  type="checkbox"
+                  id="MarketingAccept"
+                  name="marketing_accept"
+                  class="size-5 rounded-md border-gray-200 bg-white shadow-sm"
+                />
+  
+                <span class="text-sm text-gray-700">
+                    Saya ingin menerima email tentang acara, promo produk, dan pengumuman lainnya.
+                </span>
+              </label>
+            </div>
+  
+            <div class="col-span-6">
+              <p class="text-sm text-gray-500">
+                Dengan membuat akun, Anda menyetujui
+                <a href="#" class="text-gray-700 underline"> syarat dan ketentuan </a>
+                and
+                <a href="#" class="text-gray-700 underline">privasi kami</a>.
+              </p>
+            </div>
+  
+            <div class="col-span-6 sm:flex sm:items-center sm:gap-4">
+              <button onclick="validateForm()"
+                class="inline-block shrink-0 rounded-md border border-blue-600 bg-blue-600 px-12 py-3 text-sm font-medium text-white transition hover:bg-transparent hover:text-blue-600 focus:outline-none focus:ring active:text-blue-500"
+              >
+                Buat Akun
+              </button>
+  
+              <p class="mt-4 text-sm text-gray-500 sm:mt-0">
+                Sudah memiliki akun?
+                <a href="#" class="text-gray-700 underline">Masuk</a>.
+              </p>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </section>
+  <div class="text-center text-3xl mt-10 font-bold">
+    <h1>Paket Liburan Kami</h1>
+  </div>
+  <!-- Icon Blocks -->
+  <div class="max-w-[85rem] px-4 py-10 sm:px-6 lg:px-8 lg:py-14 mx-auto">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 items-center gap-6 md:gap-10">
+      <!-- Card -->
+      <div class="size-full bg-white shadow-lg rounded-lg p-5 dark:bg-slate-900">
+        <div class="flex items-center gap-x-4 mb-3">
+          <div class="inline-flex justify-center items-center size-[62px] rounded-full border-4 border-blue-50 bg-blue-100 dark:border-blue-900 dark:bg-blue-800">
+            <svg class="flex-shrink-0 size-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+          </div>
+          <div class="flex-shrink-0">
+            <h3 class="block text-lg font-semibold text-gray-800 dark:text-white">Bali</h3>
+          </div>
+        </div>
+        <p class="text-gray-600 dark:text-gray-400">Liburan bersama Windy Travel sekarang juga dan rayakan moment bahagiamu.</p>
+      </div>
+      <!-- End Card -->
+  
+      <!-- Card -->
+      <div class="size-full bg-white shadow-lg rounded-lg p-5 dark:bg-slate-900">
+        <div class="flex items-center gap-x-4 mb-3">
+          <div class="inline-flex justify-center items-center size-[62px] rounded-full border-4 border-blue-50 bg-blue-100 dark:border-blue-900 dark:bg-blue-800">
+            <svg class="flex-shrink-0 size-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h20"/><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"/><path d="m7 21 5-5 5 5"/></svg>
+          </div>
+          <div class="flex-shrink-0">
+            <h3 class="block text-lg font-semibold text-gray-800 dark:text-white">Surabaya</h3>
+          </div>
+        </div>
+        <p class="text-gray-600 dark:text-gray-400">Liburan bersama Windy Travel sekarang juga dan rayakan moment bahagiamu.</p>
+      </div>
+      <!-- End Card -->
+      
+      <!-- Card -->
+      <div class="size-full bg-white shadow-lg rounded-lg p-5 dark:bg-slate-900">
+        <div class="flex items-center gap-x-4 mb-3">
+          <div class="inline-flex justify-center items-center size-[62px] rounded-full border-4 border-blue-50 bg-blue-100 dark:border-blue-900 dark:bg-blue-800">
+            <svg class="flex-shrink-0 size-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/><path d="M22 7v3a2 2 0 0 1-2 2v0a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12v0a2 2 0 0 1-2-2V7"/></svg>
+          </div>
+          <div class="flex-shrink-0">
+            <h3 class="block text-lg font-semibold text-gray-800 dark:text-white">Ujung Kulon</h3>
+          </div>
+        </div>
+        <p class="text-gray-600 dark:text-gray-400">Liburan bersama Windy Travel sekarang juga dan rayakan moment bahagiamu.</p>
+      </div>
+      <!-- End Card -->
+  
+      <!-- Card -->
+      <div class="size-full bg-white shadow-lg rounded-lg p-5 dark:bg-slate-900">
+        <div class="flex items-center gap-x-4 mb-3">
+          <div class="inline-flex justify-center items-center size-[62px] rounded-full border-4 border-blue-50 bg-blue-100 dark:border-blue-900 dark:bg-blue-800">
+            <svg class="flex-shrink-0 size-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 8.5 9 12l-3.5 3.5L2 12l3.5-3.5Z"/><path d="m12 2 3.5 3.5L12 9 8.5 5.5 12 2Z"/><path d="M18.5 8.5 22 12l-3.5 3.5L15 12l3.5-3.5Z"/><path d="m12 15 3.5 3.5L12 22l-3.5-3.5L12 15Z"/></svg>
+          </div>
+          <div class="flex-shrink-0">
+            <h3 class="block text-lg font-semibold text-gray-800 dark:text-white">Karimun Jawa</h3>
+          </div>
+        </div>
+        <p class="text-gray-600 dark:text-gray-400">Liburan bersama Windy Travel sekarang juga dan rayakan moment bahagiamu.</p>
+      </div>
+      <!-- End Card -->
+  
+      <!-- Card -->
+      <div class="size-full bg-white shadow-lg rounded-lg p-5 dark:bg-slate-900">
+        <div class="flex items-center gap-x-4 mb-3">
+          <div class="inline-flex justify-center items-center size-[62px] rounded-full border-4 border-blue-50 bg-blue-100 dark:border-blue-900 dark:bg-blue-800">
+            <svg class="flex-shrink-0 size-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.466 7.5C15.643 4.237 13.952 2 12 2 9.239 2 7 6.477 7 12s2.239 10 5 10c.342 0 .677-.069 1-.2"/><path d="m15.194 13.707 3.814 1.86-1.86 3.814"/><path d="M19 15.57c-1.804.885-4.274 1.43-7 1.43-5.523 0-10-2.239-10-5s4.477-5 10-5c4.838 0 8.873 1.718 9.8 4"/></svg>
+          </div>
+          <div class="flex-shrink-0">
+            <h3 class="block text-lg font-semibold text-gray-800 dark:text-white">Raja Ampat</h3>
+          </div>
+        </div>
+        <p class="text-gray-600 dark:text-gray-400">Liburan bersama Windy Travel sekarang juga dan rayakan moment bahagiamu.</p>
+      </div>
+      <!-- End Card -->
+  
+      <!-- Card -->
+      <div class="size-full bg-white shadow-lg rounded-lg p-5 dark:bg-slate-900">
+        <div class="flex items-center gap-x-4 mb-3">
+          <div class="inline-flex justify-center items-center size-[62px] rounded-full border-4 border-blue-50 bg-blue-100 dark:border-blue-900 dark:bg-blue-800">
+            <svg class="flex-shrink-0 size-6 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.3 10a.7.7 0 0 1-.626-1.079L11.4 3a.7.7 0 0 1 1.198-.043L16.3 8.9a.7.7 0 0 1-.572 1.1Z"/><rect x="3" y="14" width="7" height="7" rx="1"/><circle cx="17.5" cy="17.5" r="3.5"/></svg>
+          </div>
+          <div class="flex-shrink-0">
+            <h3 class="block text-lg font-semibold text-gray-800 dark:text-white">Labuan Bajo</h3>
+          </div>
+        </div>
+        <p class="text-gray-600 dark:text-gray-400">Liburan bersama Windy Travel sekarang juga dan rayakan moment bahagiamu.</p>
+      </div>
+      <!-- End Card -->
+    </div>
+  </div>
+  <!-- End Icon Blocks -->
+  
+  <section>
+    <div class="mx-auto max-w-screen-2xl px-4 py-8 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <div class="bg-blue-600 p-8 md:p-12 lg:px-16 lg:py-24">
+          <div class="mx-auto max-w-xl text-center">
+            <h2 class="text-2xl font-bold text-white md:text-3xl">
+              Hubungi Kami Sekarang & Dapatkan Penawaran Menarik
+            </h2>
+  
+            <p class="hidden text-white/90 sm:mt-4 sm:block">
+                Liburan bersama Windy Travel sekarang juga dan rayakan moment bahagiamu
+                Liburan bersama Windy Travel sekarang juga dan rayakan moment bahagiamu
+                Liburan bersama Windy Travel sekarang juga.
+            </p>
+  
+            <div class="mt-4 md:mt-8">
+              <a
+                href="#"
+                class="inline-block rounded border border-white bg-white px-12 py-3 text-sm font-medium text-blue-500 transition hover:bg-transparent hover:text-white focus:outline-none focus:ring focus:ring-yellow-400"
+              >
+                Hubungi Windy Travel
+              </a>
+            </div>
+          </div>
+        </div>
+  
+        <div class="grid grid-cols-2 gap-4 md:grid-cols-1 lg:grid-cols-2">
+          <img
+            alt=""
+            src="https://img.jakpost.net/c/2017/08/02/2017_08_02_30495_1501654303._large.jpg"
+            class="h-40 w-full object-cover sm:h-56 md:h-full"
+          />
+  
+          <img
+            alt=""
+            src="https://www.indonesia.travel/content/dam/indtravelrevamp/en/destinations/destination-update-may-2019/RA_Pianemoisland_indtravel.jpg"
+            class="h-40 w-full object-cover sm:h-56 md:h-full"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 MyWebsite. All rights reserved.</p>
+    </footer>
+    <script>
+        function validateForm() {
+            var nameInput = document.getElementById('name');
+            var emailInput = document.getElementById('email');
+
+            var name = nameInput.value.trim();
+            var email = emailInput.value.trim();
+
+            if (name === '') {
+                alert('Please enter your name.');
+                nameInput.focus();
+                return false;
+            }
+
+            if (email === '') {
+                alert('Please enter your email.');
+                emailInput.focus();
+                return false;
+            }
+
+            if (!validateEmail(email)) {
+                alert('Please enter a valid email address.');
+                emailInput.focus();
+                return false;
+            }
+
+            // If all validations pass, you can submit the form or perform further actions.
+            alert('Form submitted successfully!');
+            return true;
+        }
+
+        function validateEmail(email) {
+            var re = /\S+@\S+\.\S+/;
+            return re.test(email);
+        }
+
+        console.clear();
+
+/**
+ * Class to manage the slider element (events, state, ...) 
+ */
+class Slider {
+  constructor(sliderEl) {
+    this.sliderEl = sliderEl;
+    this.slides = this.sliderEl.querySelectorAll('.slider__card');
+    this.slideCount = this.slides.length;
+    this.bulletsContainer = this.sliderEl.querySelector('.slider__bullets');
+    this.arrows = {
+      prev: this.sliderEl.querySelector('.slider__arrow--prev'),
+      next: this.sliderEl.querySelector('.slider__arrow--next'),
+    }
+    this.bullets = [];
+
+    this.activeIndex = 0;
+
+    this._initializeSlider();
+  }
+
+  /* Initialize the slider by creating necessary elements and updating the UI */
+  _initializeSlider = () => {
+    this._createBullets();
+    this._addBulletsToSlider();
+    this._addEventListeners();
+
+    this._updateUI();
+  }
+
+  /**** SETUP FUNCTIONS ***/
+
+  /* Add event listeners to the slider arrows */
+  _addEventListeners = () => {
+    this.arrows.prev.addEventListener('click', this._onPrevArrowClick);
+    this.arrows.next.addEventListener('click', this._onNextArrowClick);
+  }
+
+  /* Go to previous slide on the prev arrow is clicked */
+  _onPrevArrowClick = () => {
+    this.activeIndex = this.activeIndex - 1;
+    if (this.activeIndex < 0) {
+      this.activeIndex = this.slideCount - 1;
+    }
+
+    this._updateUI();
+  }
+
+  /* Go to next slide when the next arrow is clicked */
+  _onNextArrowClick = () => {
+    this.activeIndex = (this.activeIndex + 1) % this.slideCount;
+    this._updateUI();
+  }
+
+  /* Create one bullet element corresponding to each of the slides */
+  _createBullets = () => {
+    this.slides.forEach((slide) => {
+      const bullet = document.createElement('button');
+      bullet.classList.add('slider__bullet');
+      this.bullets.push(bullet);
+    })
+  }
+
+  /* Add the bullet elements to the slider */
+  _addBulletsToSlider = () => {
+    this.bullets.forEach((bullet) => {
+      this.bulletsContainer.appendChild(bullet);
+    })
+  }
+
+  /**** UPDATE FUNCTIONS ***/
+  
+  /* Update the whole UI accordion to the current state */
+  _updateUI = () => {
+    this._updateActiveBullet();
+    this._updateArrowsUI();
+    this._updateSlidesUI();
+  }
+
+  /* Update the active bullet attribute */
+  _updateActiveBullet = () => {
+    this.bullets.forEach((bullet, index) => {
+      index === this.activeIndex
+        ? bullet.setAttribute('active', '')
+      : bullet.removeAttribute('active');
+    })
+  }
+  
+  /* Update the arrows disabled attribute so they are only clickable when relevant */
+  _updateArrowsUI = () => {
+    this.activeIndex === 0
+      ? this.arrows.prev.setAttribute('disabled', '')
+      : this.arrows.prev.removeAttribute('disabled');
+    
+    this.activeIndex === this.slideCount - 1
+      ? this.arrows.next.setAttribute('disabled', '')
+      : this.arrows.next.removeAttribute('disabled');
+  }
+  
+  /* Update the active slide */
+  _updateSlidesUI = () => {
+    this.slides.forEach((slide, index) => {
+      index === this.activeIndex
+        ? slide.setAttribute('active', '')
+        : slide.removeAttribute('active');
+    })
+  }
+}
+
+function init() {
+  const slider = document.querySelector('.slider');
+
+  if (!slider) {
+    console.warn('Could not get slider element!')
+    return;
+  }
+
+  new Slider(slider);
+}
+
+init();
+    </script>
+</body>
+</html>
